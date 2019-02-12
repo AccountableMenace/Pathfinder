@@ -8,8 +8,9 @@ namespace Pathfinder
 {
     class aStarPathfind
     {
+        public static int[,] debugOnlyCostFromStart { get; set; }
         static AStarMap[,] grid;
-        public static List<Point>[] aStarGetPath(int[,] gridData, Point startPoint, Point endPoint)
+        public static List<Point>[] aStarGetPath(int[,] gridData, Point startPoint, Point endPoint, bool debug)
         {
             bool found = false;
             Point neighbouringPoint;
@@ -71,8 +72,10 @@ namespace Pathfinder
                 }
 
             }
+            //pathData[0] - Path, pathData[1] = searched cells
+            if (debug) debugOnlyCostFromStart = returnCostFromStart(grid);
             if (found) return new List<Point>[] { returnPath(grid, startPoint, endPoint), returnSearched(grid) };
-            else return null;
+            else return new List<Point>[2];// Point notFound = new Point() { 1, 1 };
 
 
         }
@@ -156,6 +159,20 @@ namespace Pathfinder
                 return true;
             }
             else return false;
+        }
+
+        private static int[,] returnCostFromStart(AStarMap[,] dataSet)
+        {
+            //return each costfromstart value for debug fun
+            int[,] cost = new int[dataSet.GetLength(0), dataSet.GetLength(1)];
+            for (int i = 0; i < dataSet.GetLength(0); i++)
+            {
+                for (int j = 0; j < dataSet.GetLength(1); j++)
+                {
+                    cost[i,j] = dataSet[i, j].costFromStart;
+                }
+            }
+            return cost;
         }
     }
 

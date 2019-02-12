@@ -82,6 +82,7 @@
     <Compile Include="InputForm.Designer.cs">
       <DependentUpon>InputForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="LayoutUpdate.cs" />
     <Compile Include="PatternSelection.cs">
       <SubType>Form</SubType>
     </Compile>
