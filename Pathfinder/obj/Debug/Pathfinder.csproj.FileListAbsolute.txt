@@ -1,0 +1,10 @@
+c:\users\vilmantas\documents\visual studio 2015\Projects\Pathfinder\Pathfinder\bin\Debug\Pathfinder.exe.config
+C:\Users\Vilmantas\Documents\Visual Studio 2015\Projects\Pathfinder\Pathfinder\bin\Debug\Pathfinder.exe
+C:\Users\Vilmantas\Documents\Visual Studio 2015\Projects\Pathfinder\Pathfinder\bin\Debug\Pathfinder.pdb
+C:\Users\Vilmantas\Documents\Visual Studio 2015\Projects\Pathfinder\Pathfinder\obj\Debug\Pathfinder.Properties.Resources.resources
+C:\Users\Vilmantas\Documents\Visual Studio 2015\Projects\Pathfinder\Pathfinder\obj\Debug\Pathfinder.csproj.GenerateResource.Cache
+C:\Users\Vilmantas\Documents\Visual Studio 2015\Projects\Pathfinder\Pathfinder\obj\Debug\Pathfinder.exe
+C:\Users\Vilmantas\Documents\Visual Studio 2015\Projects\Pathfinder\Pathfinder\obj\Debug\Pathfinder.pdb
+C:\Users\Vilmantas\Documents\Visual Studio 2015\Projects\Pathfinder\Pathfinder\obj\Debug\Pathfinder.Form1.resources
+C:\Users\Vilmantas\Documents\Visual Studio 2015\Projects\Pathfinder\Pathfinder\obj\Debug\Pathfinder.csprojResolveAssemblyReference.cache
+C:\Users\Vilmantas\Documents\Visual Studio 2015\Projects\Pathfinder\Pathfinder\obj\Debug\Pathfinder.PatternSelection.resources
