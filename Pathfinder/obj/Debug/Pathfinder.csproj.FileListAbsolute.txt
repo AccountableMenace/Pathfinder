@@ -6,5 +6,4 @@ C:\Users\Vilmantas\Documents\Visual Studio 2015\Projects\Pathfinder\Pathfinder\o
 C:\Users\Vilmantas\Documents\Visual Studio 2015\Projects\Pathfinder\Pathfinder\obj\Debug\Pathfinder.exe
 C:\Users\Vilmantas\Documents\Visual Studio 2015\Projects\Pathfinder\Pathfinder\obj\Debug\Pathfinder.pdb
 C:\Users\Vilmantas\Documents\Visual Studio 2015\Projects\Pathfinder\Pathfinder\obj\Debug\Pathfinder.Form1.resources
-C:\Users\Vilmantas\Documents\Visual Studio 2015\Projects\Pathfinder\Pathfinder\obj\Debug\Pathfinder.csprojResolveAssemblyReference.cache
 C:\Users\Vilmantas\Documents\Visual Studio 2015\Projects\Pathfinder\Pathfinder\obj\Debug\Pathfinder.PatternSelection.resources

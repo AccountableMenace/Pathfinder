@@ -1,0 +1,9 @@
+C:\Users\Vilmantas\documents\visual studio 2015\Projects\Pathfinder\Pathfinder\bin\Release\Pathfinder.exe.config
+C:\Users\Vilmantas\documents\visual studio 2015\Projects\Pathfinder\Pathfinder\obj\Release\Pathfinder.Form1.resources
+C:\Users\Vilmantas\documents\visual studio 2015\Projects\Pathfinder\Pathfinder\obj\Release\Pathfinder.PatternSelection.resources
+C:\Users\Vilmantas\documents\visual studio 2015\Projects\Pathfinder\Pathfinder\obj\Release\Pathfinder.Properties.Resources.resources
+C:\Users\Vilmantas\documents\visual studio 2015\Projects\Pathfinder\Pathfinder\obj\Release\Pathfinder.csproj.GenerateResource.Cache
+C:\Users\Vilmantas\documents\visual studio 2015\Projects\Pathfinder\Pathfinder\bin\Release\Pathfinder.exe
+C:\Users\Vilmantas\documents\visual studio 2015\Projects\Pathfinder\Pathfinder\bin\Release\Pathfinder.pdb
+C:\Users\Vilmantas\documents\visual studio 2015\Projects\Pathfinder\Pathfinder\obj\Release\Pathfinder.exe
+C:\Users\Vilmantas\documents\visual studio 2015\Projects\Pathfinder\Pathfinder\obj\Release\Pathfinder.pdb

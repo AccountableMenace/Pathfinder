@@ -32,7 +32,6 @@ namespace Pathfinder
         bool firstTimesettingGridSize = true;
         bool drawCost = false;
         DateTime startTime = DateTime.Now;
-        LayoutUpdate layoutUpdate = new LayoutUpdate();
         List<Control> controlsToUpdate = new List<Control>();
 
         //Settings
