@@ -9,6 +9,7 @@ namespace Pathfinder
     class aStarPathfind
     {
         public static int[,] debugOnlyCostFromStart { get; set; }
+        public static int stepCount { get; set; }
         static AStarMap[,] grid;
         public static List<Point>[] aStarGetPath(int[,] gridData, Point startPoint, Point endPoint, bool debug)
         {
@@ -29,8 +30,10 @@ namespace Pathfinder
             grid[startPoint.X, startPoint.Y].fullCost = StraightDistance(startPoint, endPoint);
             grid[startPoint.X, startPoint.Y].isEvaluated = false;
 
+            stepCount = 0;
             while (toEvaluate.Count > 0)
             {
+                stepCount++;
                 currentPoint = FindLowestFullCostLocation(toEvaluate);
                 if (currentPoint == endPoint)
                 {

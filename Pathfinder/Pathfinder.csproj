@@ -82,6 +82,7 @@
     <Compile Include="InputForm.Designer.cs">
       <DependentUpon>InputForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="MazeGenerator.cs" />
     <Compile Include="PatternSelection.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -105,6 +106,7 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -130,6 +132,30 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\saveIcon.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\randomIcon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\brushIcon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\eraseIcon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\settingsIcon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\saveIcon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\fillIcon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\pathIcon.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

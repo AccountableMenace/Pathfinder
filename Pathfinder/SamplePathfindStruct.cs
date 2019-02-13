@@ -1,6 +1,6 @@
 ﻿namespace Pathfinder
 {
-    struct SamplePathfindStruct
+    struct FloodPathfindStruct
     {
         public int x { get; set; }
         public int y { get; set; }

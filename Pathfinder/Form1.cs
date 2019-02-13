@@ -18,8 +18,8 @@ namespace Pathfinder
         /*
         ---------------TO FIX--------------------
         autosave patterns
-        step count for astar
-        maze
+        zooming 
+        Fucking ui
 
         */
         //Variables
@@ -34,6 +34,15 @@ namespace Pathfinder
         DateTime startTime = DateTime.Now;
         List<Control> controlsToUpdate = new List<Control>();
 
+
+        //Resources
+        Image saveIcon = Pathfinder.Properties.Resources.saveIcon;
+        Image settingsIcon = Pathfinder.Properties.Resources.settingsIcon;
+        Image randomIcon = Pathfinder.Properties.Resources.randomIcon;
+        Image brushIcon = Pathfinder.Properties.Resources.brushIcon;
+        Image eraseIcon = Pathfinder.Properties.Resources.eraseIcon;
+        Image fillIcon = Pathfinder.Properties.Resources.fillIcon;
+        Image pathIcon = Pathfinder.Properties.Resources.pathIcon;
         //Settings
         bool gridBoundary = true, debug = false;
 
@@ -47,6 +56,7 @@ namespace Pathfinder
         Button drawStartBtn = new Button();
         Label distanceLbl = new Label();
         Label timingLbl = new Label();
+        Label stepCountLbl = new Label();
         Button randomBtn = new Button();
         Button settingsBtn = new Button();
         Button loadPatternBtn = new Button();
@@ -76,21 +86,27 @@ namespace Pathfinder
             InitializeAll();
             //Who settings menu
             settingsBtn_Click(this, new EventArgs());
-
             UpdateLayout();
         }
 
-        private void RandomBtn_Click(object sender, EventArgs e)
+        private async void RandomBtn_Click(object sender, EventArgs e)
         {
-            Random rnd = new Random();
-            for (int i = 0; i < grid.GetLength(0); i++)
+            if (isBusy == false)
             {
-                for (int j = 0; j < grid.GetLength(1); j++)
+                isBusy = true;
+                MazeGenerator mazeGenerator = new MazeGenerator();
+                mazeStruct[,] maze = new mazeStruct[0, 0];/* = mazeGenerator.GenerateMazeRecursiveBacktrack(new Size(grid.GetLength(0), grid.GetLength(1)));*/
+                await Task.Run(() => maze = mazeGenerator.GenerateMazeRecursiveBacktrack(new Size(grid.GetLength(0), grid.GetLength(1))));
+                for (int i = 0; i < maze.GetLength(0); i++)
                 {
-                    grid[i, j] = rnd.Next(2);
+                    for (int j = 0; j < maze.GetLength(1); j++)
+                    {
+                        grid[i, j] = maze[i, j].value;
+                    }
                 }
+                await Task.Run(() => this.Invalidate());
+                isBusy = false;
             }
-            this.Invalidate();
         }
 
         private void settingsBtn_Click(object sender, EventArgs e)
@@ -155,7 +171,7 @@ namespace Pathfinder
                     grid[i, j] = 1;
                 }
             }
-            this.Invalidate();
+            Task.Run(() => this.Invalidate());
         }
 
         private async void startPathfinding_click(object sender, EventArgs e)
@@ -230,12 +246,12 @@ namespace Pathfinder
 
             List<Point>[] pathData;
             pathData = new List<Point>[2];
-            
+
 
             if (StartEnd[0].X >= 0 && StartEnd[1].X >= 0)
             {
                 //pathData[0] - Path, pathData[1] = searched cells
-                await Task.Run(() => pathData = aStarPathfind.aStarGetPath(grid, StartEnd[0], StartEnd[1],debug));
+                await Task.Run(() => pathData = aStarPathfind.aStarGetPath(grid, StartEnd[0], StartEnd[1], debug));
                 try
                 {
                     if (pathData[0] != null)
@@ -285,15 +301,10 @@ namespace Pathfinder
             pathfindTime.Stop();
             long timeTaken = pathfindTime.ElapsedMilliseconds;
             timingLbl.Text = "Time taken: " + ((double)timeTaken / 1000).ToString() + " s";
+            stepCountLbl.Text = "Step count: " + aStarPathfind.stepCount;
             this.Invalidate();
             this.BackColor = default(Color);
             isBusy = false;
-        }
-
-        private void Form1_ResizeEnd(object sender, EventArgs e)
-        {
-            UpdateLayout();
-            this.Invalidate();
         }
 
         private void Form1_MouseClick(object sender, MouseEventArgs e)
@@ -364,7 +375,7 @@ namespace Pathfinder
         }
 
 
-        private void Form1_Paint(object sender, PaintEventArgs e)
+        private async void Form1_Paint(object sender, PaintEventArgs e)
         {
             //refresh graphics
             graphics = e.Graphics;
@@ -414,7 +425,7 @@ namespace Pathfinder
                         graphics.FillRectangle(Brushes.Yellow, rect.X + offset, rect.Y + offset, rect.Width - offset, rect.Height - offset);
                     }
                     //draw value of each cell unless it's empty
-                    if ((grid[i, j] == 3 || grid[i, j] ==-1) /*&& TextRenderer.MeasureText("123", this.Font).Width <= rectSize.Width*/)
+                    if ((grid[i, j] == 3 || grid[i, j] == -1) /*&& TextRenderer.MeasureText("123", this.Font).Width <= rectSize.Width*/)
                     {
                         //graphics.DrawString(grid[i, j].ToString(), this.Font, Brushes.Red, cursor);
                         if (drawCost && debug && debugOnlyCostFromStart != null) graphics.DrawString(debugOnlyCostFromStart[i, j].ToString(), this.Font, Brushes.Red, cursor);
@@ -452,20 +463,19 @@ namespace Pathfinder
         private long[] RunPathFindThread(Point Start, Point End)
         {
             //returns grid automatically + label values 
-            //Task<long[]> FindPathAwait = SamplePathfinding(Start, End, grid);
-            return SamplePathfinding(Start, End, grid);
+            return FloodPathfinding(Start, End, grid);
 
         }
-        private static long[] SamplePathfinding(Point start, Point end, int[,] gridData)
+        private static long[] FloodPathfinding(Point start, Point end, int[,] gridData)
         {
-            List<SamplePathfindStruct> SamplePFData = new List<SamplePathfindStruct>();
-            List<SamplePathfindStruct> adjacentCells = new List<SamplePathfindStruct>();
+            List<FloodPathfindStruct> FloodPFData = new List<FloodPathfindStruct>();
+            List<FloodPathfindStruct> adjacentCells = new List<FloodPathfindStruct>();
             // int length = grid.GetLength(0) * grid.GetLength(1);
-            var newCell = new SamplePathfindStruct();
+            var newCell = new FloodPathfindStruct();
             newCell.x = end.X;
             newCell.y = end.Y;
             newCell.count = 0;
-            SamplePFData.Add(newCell);
+            FloodPFData.Add(newCell);
 
             Stopwatch test1 = new Stopwatch();
             Stopwatch test2 = new Stopwatch();
@@ -477,7 +487,7 @@ namespace Pathfinder
             do
             {
                 unseenCellCount = 0;
-                for (int j = 0; j < SamplePFData.Count && repeat; j++)
+                for (int j = 0; j < FloodPFData.Count && repeat; j++)
                 {
                     int xOffset, yOffset, gridLengthX = gridData.GetLength(0) - 1, gridLengthY = gridData.GetLength(1) - 1;
                     int val;
@@ -488,9 +498,9 @@ namespace Pathfinder
                         else if (i == 1) { xOffset = 1; yOffset = 0; }
                         else if (i == 2) { xOffset = 0; yOffset = -1; }
                         else { xOffset = -1; yOffset = 0; }
-                        newCell.x = SamplePFData[j].x + xOffset;
-                        newCell.y = SamplePFData[j].y + yOffset;
-                        newCell.count = SamplePFData[j].count + 1;
+                        newCell.x = FloodPFData[j].x + xOffset;
+                        newCell.y = FloodPFData[j].y + yOffset;
+                        newCell.count = FloodPFData[j].count + 1;
                         //Prevent out of boundaries for array
                         if (newCell.x < 0) { newCell.x = 0; }
                         if (newCell.y < 0) { newCell.y = 0; }
@@ -518,7 +528,7 @@ namespace Pathfinder
                     }
                     //check if there are matching adjacent cells and cells in the main list, where main cell count is less than adjacent cell
                     //if they do - remove them
-                    foreach (var mainCell in SamplePFData)
+                    foreach (var mainCell in FloodPFData)
                     {
                         foreach (var adjacentCell in adjacentCells)
                         {
@@ -530,7 +540,7 @@ namespace Pathfinder
                             }
                         }
                     }
-                    SamplePFData.AddRange(adjacentCells);
+                    FloodPFData.AddRange(adjacentCells);
                     adjacentCells.Clear();
                 }
             } while (repeat && unseenCellCount > 0);
@@ -639,13 +649,13 @@ namespace Pathfinder
                     drawStartBtn.Font = new Font(this.Font, FontStyle.Bold);
                     drawWallBtn.Font = new Font(this.Font, FontStyle.Regular);
                     drawWallBtn.FlatAppearance.BorderSize = 0;
-                    drawStartBtn.FlatAppearance.BorderSize = 2;
+                    drawStartBtn.FlatAppearance.BorderSize = 1;
                 }
                 else
                 {
                     drawStartBtn.Font = new Font(this.Font, FontStyle.Regular);
                     drawWallBtn.Font = new Font(this.Font, FontStyle.Bold);
-                    drawWallBtn.FlatAppearance.BorderSize = 2;
+                    drawWallBtn.FlatAppearance.BorderSize = 1;
                     drawStartBtn.FlatAppearance.BorderSize = 0;
                 }
             }
@@ -690,34 +700,56 @@ namespace Pathfinder
         {
             Point TopLeftButtonPoint = new Point((int)(this.Width * 0.05), (int)(this.Height * 0.01));
             Size fullButtonSize = new Size((int)(this.Width * 0.1), (int)(this.Height * 0.075));
-            Size halfButtonSize= new Size((int)(this.Width * 0.1), (int)(this.Height * 0.035));
+            Size halfButtonSize = new Size((int)(this.Width * 0.1), (int)(this.Height * 0.035));
+            //set minimum size for buttons
+            //fulsized
+            if (fullButtonSize.Width < 140)
+                fullButtonSize.Width = 140;
+            if (fullButtonSize.Height < 60)
+                fullButtonSize.Height = 60;
+            //halfsized
+            if (halfButtonSize.Width < 140)
+                halfButtonSize.Width = 140;
+            if (halfButtonSize.Height < 28)
+                halfButtonSize.Height = 28;
+
+            //if (fontSizeHalf < 13) fontSizeHalf = 13;
+            Font fontFull = new Font("Arial", (int)(fullButtonSize.Height * 0.2), GraphicsUnit.Pixel);
             int Hpadding = (int)(this.Width * 0.01);
             int Vpadding = (int)(this.Height * .005);
             //AStarpathFind
             AStarpathFind.Location = TopLeftButtonPoint;
             AStarpathFind.Size = fullButtonSize;
+            AStarpathFind.Font = fontFull;
+            setupButtonIcon(AStarpathFind, pathIcon);
 
             //clearGridBtn
             clearGridBtn.Location = new Point(AStarpathFind.Right + Hpadding, TopLeftButtonPoint.Y);
             clearGridBtn.Size = halfButtonSize;
+            setupButtonIcon(clearGridBtn, eraseIcon);
 
             //clearPathBtn
             clearPathBtn.Location = new Point(clearGridBtn.Left, clearGridBtn.Bottom + Vpadding);
             clearPathBtn.Size = halfButtonSize;
+            setupButtonIcon(clearPathBtn, eraseIcon);
 
             //fillGridBtn
             fillGridBtn.Location = new Point(clearPathBtn.Right + Hpadding, TopLeftButtonPoint.Y);
             fillGridBtn.Size = halfButtonSize;
+            setupButtonIcon(fillGridBtn, fillIcon);
 
 
             //Brushes {
             //drawWall
-            drawWallBtn.Location = new Point(fillGridBtn.Left , TopLeftButtonPoint.Y + halfButtonSize.Height + Vpadding);
+            drawWallBtn.Location = new Point(fillGridBtn.Left, TopLeftButtonPoint.Y + halfButtonSize.Height + Vpadding);
             drawWallBtn.Size = new Size((int)(0.5 * (halfButtonSize.Width - Hpadding)), halfButtonSize.Height);
+            //set icon to brush
+            drawWallBtn.Image = new Bitmap(brushIcon, (int)(drawWallBtn.Height * .8), (int)(drawWallBtn.Height * .8));
 
             //drawStart
             drawStartBtn.Location = new Point(drawWallBtn.Left + drawWallBtn.Width + Hpadding, drawWallBtn.Top);
             drawStartBtn.Size = drawWallBtn.Size;
+            drawStartBtn.Image = new Bitmap(brushIcon, (int)(drawStartBtn.Height * .8), (int)(drawStartBtn.Height * .8));
             // }
 
             //for label size determination
@@ -728,20 +760,29 @@ namespace Pathfinder
             distanceLbl.Size = maxSize;
 
             //timingLbl Label
-            timingLbl.Location = new Point(drawStartBtn.Right + Hpadding, distanceLbl.Bottom);
+            timingLbl.Location = new Point(distanceLbl.Left, distanceLbl.Bottom);
             timingLbl.Size = maxSize;
+
+            //stepCountLbl Label
+            stepCountLbl.Location = new Point(distanceLbl.Left, timingLbl.Bottom);
+            stepCountLbl.Size = maxSize;
 
             //randomBtn
             randomBtn.Location = new Point(timingLbl.Right + Hpadding, TopLeftButtonPoint.Y);
+            randomBtn.Font = fontFull;
             randomBtn.Size = fullButtonSize;
+            //randomBtn.Font = fontFull;
+            setupButtonIcon(randomBtn, randomIcon);
 
             //settingsBtn 
             settingsBtn.Location = new Point(randomBtn.Right + Hpadding, TopLeftButtonPoint.Y);
             settingsBtn.Size = halfButtonSize;
+            setupButtonIcon(settingsBtn, settingsIcon);
 
             //loadPatternBtn
             loadPatternBtn.Location = new Point(settingsBtn.Left, TopLeftButtonPoint.Y + halfButtonSize.Height + Vpadding);
             loadPatternBtn.Size = halfButtonSize;
+            setupButtonIcon(loadPatternBtn, saveIcon);
 
 
 
@@ -760,6 +801,8 @@ namespace Pathfinder
                 //AStarpathFind
                 AStarpathFind.Location = TopLeftButtonPoint;
                 AStarpathFind.Size = halfButtonSize;
+                AStarpathFind.Font = this.Font;
+                setupButtonIcon(AStarpathFind, pathIcon);
 
                 //startPathfinding
                 startPathfinding.Location = new Point(AStarpathFind.Left, TopLeftButtonPoint.Y + halfButtonSize.Height + Vpadding);
@@ -773,6 +816,24 @@ namespace Pathfinder
             }
         }
 
+        private async void Form1_ResizeEnd(object sender, EventArgs e)
+        {
+            UpdateLayout();
+            await Task.Run(() => this.Invalidate());
+        }
+        //Call ResizeEnd event when clicking maximise buttons or double clicking title bar
+        const int WM_SYSCOMMAND = 0x0112;
+        const int SC_MAXIMIZE = 0xF030;
+        protected override void WndProc(ref Message m)
+        {
+            base.WndProc(ref m);
+            int wParam = (m.WParam.ToInt32() & 0xFFF0);
+            if (wParam == 0xF030 || wParam == 0xF020 || wParam == 0xF120)
+            {
+                this.OnResizeEnd(EventArgs.Empty);
+            }
+        }
+
         private void InitializeAll()
         {
             //updater Timer
@@ -781,7 +842,7 @@ namespace Pathfinder
 
             //AStarpathFind Button
             AStarpathFind.FlatStyle = FlatStyle.Flat;
-            AStarpathFind.Text = "Run A* Search";
+            AStarpathFind.Text = " A* Pathfind";
             AStarpathFind.Click += AStarpathFind_Click;
             Controls.Add(AStarpathFind);
 
@@ -812,18 +873,18 @@ namespace Pathfinder
 
             //drawWall Button
             drawWallBtn.FlatStyle = FlatStyle.Flat;
-            drawWallBtn.Text = "Wall";
+            //drawWallBtn.Text = "Wall";
             drawWallBtn.Click += new EventHandler(this.drawWallBtn_click);
             drawWallBtn.Font = new Font(this.Font, FontStyle.Bold);
             drawWallBtn.BackColor = Color.Black;
             drawWallBtn.ForeColor = Color.White;
             drawWallBtn.FlatAppearance.BorderColor = Color.Red;
-            drawWallBtn.FlatAppearance.BorderSize = 2;
+            drawWallBtn.FlatAppearance.BorderSize = 1;
             Controls.Add(drawWallBtn);
 
             //drawStart Button
             drawStartBtn.FlatStyle = FlatStyle.Flat;
-            drawStartBtn.Text = "End / Start Point";
+            //drawStartBtn.Text = "Start / End Point";
             drawStartBtn.Click += new EventHandler(this.drawStartBtn_click);
             drawStartBtn.BackColor = (Color)ColorTranslator.FromHtml("#4cd137");
             drawStartBtn.FlatAppearance.BorderColor = Color.Red;
@@ -839,9 +900,13 @@ namespace Pathfinder
             timingLbl.Text = "Time taken: ";
             Controls.Add(timingLbl);
 
+            //stepCountLbl Label
+            stepCountLbl.Text = "Step count: ";
+            Controls.Add(stepCountLbl);
+
             //randomBtn Button
             randomBtn.FlatStyle = FlatStyle.Flat;
-            randomBtn.Text = "Random Menu";
+            randomBtn.Text = " Random Menu";
             randomBtn.Click += RandomBtn_Click;
             Controls.Add(randomBtn);
 
@@ -853,20 +918,31 @@ namespace Pathfinder
 
             //loadPatternBtn Button
             loadPatternBtn.FlatStyle = FlatStyle.Flat;
-            loadPatternBtn.Text = "Save / load pattern";
+            loadPatternBtn.Text = " Save / load pattern";
             loadPatternBtn.Click += LoadPatternBtn_Click;
             Controls.Add(loadPatternBtn);
         }
 
-        //Allow console to be started
-        //oh fuck, do i need all this? (yes)
-        //[DllImport("kernel32.dll", SetLastError = true)]
-        //[return: MarshalAs(UnmanagedType.Bool)]
-        //static extern bool AllocConsole();
+        private void setupButtonIcon(Button button, Image icon)
+        {// sets and alligns an image to button
+            button.Image = new Bitmap(icon, (int)(button.Height * .5), (int)(button.Height * .5));
+            button.ImageAlign = ContentAlignment.MiddleLeft;
+            button.TextAlign = ContentAlignment.MiddleRight;
+            button.TextImageRelation = TextImageRelation.ImageBeforeText;
 
-
+        }
     }
+
+
+    //Allow console to be started
+    //oh fuck, do i need all this? (yes)
+    //[DllImport("kernel32.dll", SetLastError = true)]
+    //[return: MarshalAs(UnmanagedType.Bool)]
+    //static extern bool AllocConsole();
+
+
 }
+
 
 
 

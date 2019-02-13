@@ -23,8 +23,7 @@ namespace Pathfinder
         ListBox PatternList = new ListBox();
 
         ContextMenuStrip contextMenuStrip = new ContextMenuStrip();
-
-
+        
         string pathToFile;
         int[,] gridData;
         public int[,] ReturnPattern { get; set; }
@@ -43,6 +42,7 @@ namespace Pathfinder
             this.ClientSize = new Size(500, 300);
             AcceptButton = okBtn;
             Font font = new Font(this.Font.FontFamily, 16);
+            Font fontSmall = new Font(this.Font.FontFamily, 10);
 
             //gridSize Label
             Lbl.Text = "Choose Pattern:";
@@ -51,6 +51,7 @@ namespace Pathfinder
 
             //PatternList
             PatternList.MouseDown += PatternList_MouseDown;
+            PatternList.Font = fontSmall;
             Controls.Add(PatternList);
 
             //okBtn Button
