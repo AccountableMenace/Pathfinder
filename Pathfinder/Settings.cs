@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 namespace Pathfinder
 {
-    public partial class GridPropertiesWindow : Form
+    public partial class Settings : Form
     {
         public int[] returnSize { get; set; } = new int[2];
         public bool[] returnSettings { get; set; } = new bool[2];
@@ -27,7 +27,7 @@ namespace Pathfinder
         CheckBox debugCheckBox = new CheckBox();
 
         //available settings - grid boundary, debug options;
-        public GridPropertiesWindow(Size currentSize, bool gridBoundary, bool debugOptions)
+        public Settings(Size currentSize, bool gridBoundary, bool debugOptions)
         {
             InitializeComponent();
             //disallow resizing
@@ -35,6 +35,7 @@ namespace Pathfinder
             this.MaximizeBox = false;   
             this.MinimizeBox = false;
             this.ClientSize = new Size(250, 200);
+            this.Text = "Settings";
             AcceptButton = okBtn;
             Font font = new Font(this.Font.FontFamily, 16);
             Font fontSmall = new Font(this.Font.FontFamily, 12);

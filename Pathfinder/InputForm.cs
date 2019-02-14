@@ -28,6 +28,7 @@ namespace Pathfinder
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.ClientSize = new Size(300, 200);
+            this.Text = "";
             AcceptButton = Confirm;
             Font font = new Font(this.Font.FontFamily, 16);
 

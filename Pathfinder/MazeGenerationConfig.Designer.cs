@@ -1,6 +1,6 @@
 ﻿namespace Pathfinder
 {
-    partial class GridPropertiesWindow
+    partial class MazeGenerationConfig
     {
         /// <summary>
         /// Required designer variable.
@@ -28,9 +28,17 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
+            this.SuspendLayout();
+            // 
+            // MazeGenerationConfig
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Text = "GridPropertiesWindow";
+            this.ClientSize = new System.Drawing.Size(284, 261);
+            this.Name = "MazeGenerationConfig";
+            this.Text = "ConfigRandomMenu";
+            this.ResumeLayout(false);
+
         }
 
         #endregion

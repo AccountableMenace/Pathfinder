@@ -10,7 +10,7 @@ using System.Windows.Forms;
 using System.Windows;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-
+using System.Windows.Input;
 namespace Pathfinder
 {
     public partial class Form1 : Form
@@ -20,6 +20,7 @@ namespace Pathfinder
         autosave patterns
         zooming 
         Fucking ui
+        reset view button
 
         */
         //Variables
@@ -28,12 +29,14 @@ namespace Pathfinder
         Point InitialOffset;
         bool drawEraser;
         int drawType = 1;
-        bool isBusy = false;
         bool firstTimesettingGridSize = true;
         bool drawCost = false;
+        bool controlDown = false;
+        bool shiftDown = false;
+        bool xDown = false;
         DateTime startTime = DateTime.Now;
         List<Control> controlsToUpdate = new List<Control>();
-
+        Point topLeftIndex = new Point(0, 0);
 
         //Resources
         Image saveIcon = Pathfinder.Properties.Resources.saveIcon;
@@ -57,7 +60,7 @@ namespace Pathfinder
         Label distanceLbl = new Label();
         Label timingLbl = new Label();
         Label stepCountLbl = new Label();
-        Button randomBtn = new Button();
+        Button mazeBtn = new Button();
         Button settingsBtn = new Button();
         Button loadPatternBtn = new Button();
 
@@ -72,15 +75,46 @@ namespace Pathfinder
         Size rectSize;
         int[,] debugOnlyCostFromStart;
 
+
+        //detect isBusy value change
+        private bool _isBusy;
+        public event System.EventHandler BusyChanged;
+        protected virtual void OnBusyChanged()
+        {
+            if (BusyChanged != null) BusyChanged(this, EventArgs.Empty);
+            foreach (Button btn in Controls.OfType<Button>())
+            {
+                btn.Enabled = !isBusy;
+            }
+        }
+        public bool isBusy
+        {
+            get { return _isBusy; }
+            set
+            {
+                _isBusy = value;
+                OnBusyChanged();
+            }
+        }
+
         public Form1()
         {
             InitializeComponent();
+            //zoom detection
+            this.MouseWheel += Form1_MouseWheel;
+            this.KeyDown += Form1_KeyDown;
+            this.KeyUp += Form1_KeyUp;
+
+
             Console.WriteLine(getTime() + "Initialized");
             //Form properties
             this.DoubleBuffered = true;
             this.ClientSize = new Size(1280, 700);
             this.WindowState = FormWindowState.Maximized;
             this.MinimumSize = new Size(510, 480);
+            this.Text = "Pathfinder by Accountable Menace";
+            //allow key down detection anywhere
+            this.KeyPreview = true;
 
             //Control initialization             
             InitializeAll();
@@ -89,23 +123,38 @@ namespace Pathfinder
             UpdateLayout();
         }
 
-        private async void RandomBtn_Click(object sender, EventArgs e)
+        private async void GenerateMaze_Click(object sender, EventArgs e)
         {
-            if (isBusy == false)
+            using (MazeGenerationConfig mazeGeneratorWindow = new MazeGenerationConfig(new Size(grid.GetLength(0), grid.GetLength(1))))
             {
-                isBusy = true;
-                MazeGenerator mazeGenerator = new MazeGenerator();
-                mazeStruct[,] maze = new mazeStruct[0, 0];/* = mazeGenerator.GenerateMazeRecursiveBacktrack(new Size(grid.GetLength(0), grid.GetLength(1)));*/
-                await Task.Run(() => maze = mazeGenerator.GenerateMazeRecursiveBacktrack(new Size(grid.GetLength(0), grid.GetLength(1))));
-                for (int i = 0; i < maze.GetLength(0); i++)
+                if (mazeGeneratorWindow.ShowDialog() == DialogResult.OK)
                 {
-                    for (int j = 0; j < maze.GetLength(1); j++)
+                    //grid = patternSelection.ReturnPattern;
+                    if (mazeGeneratorWindow.algorithm == 0)
                     {
-                        grid[i, j] = maze[i, j].value;
+                        isBusy = true;
+                        MazeGenerator mazeGenerator = new MazeGenerator();
+                        mazeStruct[,] maze = new mazeStruct[0, 0];/* = mazeGenerator.GenerateMazeRecursiveBacktrack(new Size(grid.GetLength(0), grid.GetLength(1)));*/
+                        await Task.Run(() => maze = mazeGenerator.GenerateMazeRecursiveBacktrack(new Size(grid.GetLength(0), grid.GetLength(1))));
+                        for (int i = 0; i < maze.GetLength(0); i++)
+                        {
+                            for (int j = 0; j < maze.GetLength(1); j++)
+                            {
+                                grid[i, j] = maze[i, j].value;
+                            }
+                        }
+                        isBusy = false;
                     }
+
+                    try
+                    {
+                        grid[mazeGeneratorWindow.StartPoint.X, mazeGeneratorWindow.StartPoint.Y] = 2;
+                        grid[mazeGeneratorWindow.EndPoint.X, mazeGeneratorWindow.EndPoint.Y] = 2;
+                    }
+                    catch (Exception) { MessageBox.Show("Invalid coordinates selected"); }
+                    await Task.Run(() => this.Invalidate());
                 }
-                await Task.Run(() => this.Invalidate());
-                isBusy = false;
+
             }
         }
 
@@ -117,7 +166,7 @@ namespace Pathfinder
                 sendSize = new Size(grid.GetLength(0), grid.GetLength(1));
             else sendSize = new Size(100, 50);
 
-            using (GridPropertiesWindow gridPropertiesWindow = new GridPropertiesWindow(sendSize, gridBoundary, debug))
+            using (Settings gridPropertiesWindow = new Settings(sendSize, gridBoundary, debug))
             {
                 if (gridPropertiesWindow.ShowDialog() == DialogResult.OK)
                 {
@@ -188,9 +237,7 @@ namespace Pathfinder
 
                 ResetGrid(true, false);
                 long[] returnedData = { };
-                ToggleButtons(false);
                 await Task.Run(() => returnedData = RunPathFindThread(StartEnd[0], StartEnd[1]));
-                ToggleButtons(true);
 
                 pathfindTime.Stop();
                 long timeTaken = pathfindTime.ElapsedMilliseconds;
@@ -242,7 +289,6 @@ namespace Pathfinder
             //
             Point[] StartEnd = getStartEndPoints();
             Console.Write("at positions " + StartEnd[0] + " and " + StartEnd[1] + "\n");
-            ToggleButtons(false);
 
             List<Point>[] pathData;
             pathData = new List<Point>[2];
@@ -294,7 +340,6 @@ namespace Pathfinder
 
 
             }
-            ToggleButtons(true);
             if (debug) debugOnlyCostFromStart = aStarPathfind.debugOnlyCostFromStart;
             //
             drawCost = true;
@@ -343,6 +388,9 @@ namespace Pathfinder
             if (isBusy == false)
             {
                 Point index = GetHoveredArrayIndex(eMouse.Location, initOffset, size);
+                //add zoom offset
+                index.X += topLeftIndex.X;
+                index.Y += topLeftIndex.Y;
                 //set draw color
                 try
                 {
@@ -375,7 +423,7 @@ namespace Pathfinder
         }
 
 
-        private async void Form1_Paint(object sender, PaintEventArgs e)
+        private void Form1_Paint(object sender, PaintEventArgs e)
         {
             //refresh graphics
             graphics = e.Graphics;
@@ -388,6 +436,21 @@ namespace Pathfinder
             //Use this message box and click on the edge cells, (top right, bottom left) - MessageBox.Show(from.ToString() + " " + to.ToString());
             //check for out of boundaries points
 
+
+            //Make this look better, there shouldn't be code literally repeating twice like this
+
+            //Do not display grid out of set boundaries
+            if (from.X < 0) { from.X = 0; }
+            if (from.Y < 0) { from.Y = 0; }
+            //if (to.X > grid.GetLength(0) - 1) { to.X = grid.GetLength(0) - 1; }
+            //if (to.Y > grid.GetLength(1) - 1) { to.Y = grid.GetLength(1) - 1; }
+
+            //Zoom offset
+            from.X += topLeftIndex.X;
+            from.Y += topLeftIndex.Y;
+            to.X += topLeftIndex.X;
+            to.Y += topLeftIndex.Y;
+            //Check if not out of bounds again
             if (from.X < 0) { from.X = 0; }
             if (from.Y < 0) { from.Y = 0; }
             if (to.X > grid.GetLength(0) - 1) { to.X = grid.GetLength(0) - 1; }
@@ -397,7 +460,7 @@ namespace Pathfinder
             {
                 for (int j = from.Y; j <= to.Y; j++)
                 {
-                    cursor = new Point((i * rectSize.Width + InitialOffset.X), (j * rectSize.Height + InitialOffset.Y));
+                    cursor = new Point(((i - topLeftIndex.X) * rectSize.Width + InitialOffset.X), ((j - topLeftIndex.Y) * rectSize.Height + InitialOffset.Y));
                     rect = new Rectangle(cursor, rectSize);
                     //draw rectangle boundaries
                     int offset = 0;
@@ -446,7 +509,7 @@ namespace Pathfinder
             {
                 //if mouse clicks on a color with the same type of brush, sets to eraser instead of brush
                 //check for out of boundaries points
-                index = GetHoveredArrayIndex(e.Location, InitialOffset, rectSize);
+                index = GetHoveredArrayIndex(e.Location, new Point(InitialOffset.X - topLeftIndex.X * rectSize.Width, InitialOffset.Y - topLeftIndex.Y * rectSize.Height), rectSize);
                 if (index.X >= 0 && index.Y >= 0 && index.X < grid.GetLength(0) && index.Y < grid.GetLength(1) && grid[index.X, index.Y] == drawType)
                     drawEraser = true;
                 else drawEraser = false;
@@ -682,13 +745,6 @@ namespace Pathfinder
                 this.Invalidate();
             }
         }
-        private void ToggleButtons(bool enable)
-        {
-            foreach (Button btn in Controls.OfType<Button>())
-            {
-                btn.Enabled = enable;
-            }
-        }
         TimeSpan timeFromStart;
         private string getTime()
         {
@@ -698,6 +754,8 @@ namespace Pathfinder
         }
         private void UpdateLayout()
         {
+            //reset zoom and offset
+            topLeftIndex = new Point(0, 0);
             Point TopLeftButtonPoint = new Point((int)(this.Width * 0.05), (int)(this.Height * 0.01));
             Size fullButtonSize = new Size((int)(this.Width * 0.1), (int)(this.Height * 0.075));
             Size halfButtonSize = new Size((int)(this.Width * 0.1), (int)(this.Height * 0.035));
@@ -767,15 +825,15 @@ namespace Pathfinder
             stepCountLbl.Location = new Point(distanceLbl.Left, timingLbl.Bottom);
             stepCountLbl.Size = maxSize;
 
-            //randomBtn
-            randomBtn.Location = new Point(timingLbl.Right + Hpadding, TopLeftButtonPoint.Y);
-            randomBtn.Font = fontFull;
-            randomBtn.Size = fullButtonSize;
-            //randomBtn.Font = fontFull;
-            setupButtonIcon(randomBtn, randomIcon);
+            //mazeBtn
+            mazeBtn.Location = new Point(timingLbl.Right + Hpadding, TopLeftButtonPoint.Y);
+            mazeBtn.Font = fontFull;
+            mazeBtn.Size = fullButtonSize;
+            //mazeBtn.Font = fontFull;
+            setupButtonIcon(mazeBtn, randomIcon);
 
             //settingsBtn 
-            settingsBtn.Location = new Point(randomBtn.Right + Hpadding, TopLeftButtonPoint.Y);
+            settingsBtn.Location = new Point(mazeBtn.Right + Hpadding, TopLeftButtonPoint.Y);
             settingsBtn.Size = halfButtonSize;
             setupButtonIcon(settingsBtn, settingsIcon);
 
@@ -904,11 +962,11 @@ namespace Pathfinder
             stepCountLbl.Text = "Step count: ";
             Controls.Add(stepCountLbl);
 
-            //randomBtn Button
-            randomBtn.FlatStyle = FlatStyle.Flat;
-            randomBtn.Text = " Random Menu";
-            randomBtn.Click += RandomBtn_Click;
-            Controls.Add(randomBtn);
+            //mazeBtn Button
+            mazeBtn.FlatStyle = FlatStyle.Flat;
+            mazeBtn.Text = " Maze Menu";
+            mazeBtn.Click += GenerateMaze_Click;
+            Controls.Add(mazeBtn);
 
             //settingsBtn Button
             settingsBtn.FlatStyle = FlatStyle.Flat;
@@ -918,7 +976,7 @@ namespace Pathfinder
 
             //loadPatternBtn Button
             loadPatternBtn.FlatStyle = FlatStyle.Flat;
-            loadPatternBtn.Text = " Save / load pattern";
+            loadPatternBtn.Text = " Save / Load Pattern";
             loadPatternBtn.Click += LoadPatternBtn_Click;
             Controls.Add(loadPatternBtn);
         }
@@ -931,10 +989,78 @@ namespace Pathfinder
             button.TextImageRelation = TextImageRelation.ImageBeforeText;
 
         }
+
+        private void Form1_MouseWheel(object sender, MouseEventArgs e)
+        {
+            int offsetAmount = xDown ? 5 : 1;
+            //Zoom in with control
+            if (controlDown)
+            {
+                Zoom(e.Delta > 0 ? true : false);
+            }
+            //Move sideways with shift
+            else if (shiftDown)
+            {
+                if (e.Delta > 0)
+                {
+                    topLeftIndex.X += offsetAmount;
+                    this.Invalidate();
+                }
+                else
+                {
+                    topLeftIndex.X -= offsetAmount;
+                    this.Invalidate();
+                }
+            }
+            //Move up by default
+            else
+            {
+                if (e.Delta > 0)
+                {
+                    topLeftIndex.Y -= offsetAmount;
+                    this.Invalidate();
+                }
+                else
+                {
+                    topLeftIndex.Y += offsetAmount;
+                    this.Invalidate();
+                }
+            }
+
+        }
+
+        private void Form1_KeyDown(object sender, KeyEventArgs e)
+        {
+            controlDown = e.Control;
+            shiftDown = e.Shift;
+            if (e.KeyCode == Keys.X) xDown = true;
+        }
+
+        private void Form1_KeyUp(object sender, KeyEventArgs e)
+        {
+            controlDown = e.Control;
+            shiftDown = e.Shift;
+            if (e.KeyCode == Keys.X) xDown = false;
+        }
+
+        private async void Zoom(bool zoomIn)
+        {
+            if (zoomIn)
+            {
+                rectSize = Size.Add(rectSize, new Size(1, 1));
+            }
+            else if (rectSize.Height > 1)
+            {
+                rectSize = Size.Subtract(rectSize, new Size(1, 1));
+            }
+            await Task.Run(() => this.Invalidate());
+        }
+        //Detect keys
+
     }
 
 
-    //Allow console to be started
+    //Allow console to be started0
     //oh fuck, do i need all this? (yes)
     //[DllImport("kernel32.dll", SetLastError = true)]
     //[return: MarshalAs(UnmanagedType.Bool)]

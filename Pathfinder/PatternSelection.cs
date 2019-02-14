@@ -40,6 +40,11 @@ namespace Pathfinder
             //this.MaximizeBox = false;
             //this.MinimizeBox = false;
             this.ClientSize = new Size(500, 300);
+            this.FormBorderStyle = FormBorderStyle.FixedDialog;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
+            this.Text = "Patterns";
+
             AcceptButton = okBtn;
             Font font = new Font(this.Font.FontFamily, 16);
             Font fontSmall = new Font(this.Font.FontFamily, 10);
