@@ -127,16 +127,28 @@
   <data name="fillIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\fillIcon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="helpIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\helpIcon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="pathIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\pathIcon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="randomIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\randomIcon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="resetIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\resetIcon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="saveIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\saveIcon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="settingsIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\settingsIcon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="zoomIconMinus" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\zoomIconMinus.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="zoomIconPlus" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\zoomIconPlus.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
 </root>

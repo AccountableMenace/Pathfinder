@@ -16,11 +16,12 @@ namespace Pathfinder
     public partial class Form1 : Form
     {
         /*
-        ---------------TO FIX--------------------
+        ---------------TO DO--------------------
         autosave patterns
-        zooming 
+        Reduce lag on zooming / shifting view (massive grids)
         Fucking ui
         reset view button
+        add grid size/ zoom info in the bottom
 
         */
         //Variables
@@ -46,10 +47,17 @@ namespace Pathfinder
         Image eraseIcon = Pathfinder.Properties.Resources.eraseIcon;
         Image fillIcon = Pathfinder.Properties.Resources.fillIcon;
         Image pathIcon = Pathfinder.Properties.Resources.pathIcon;
+        Image zoomIconPlus = Pathfinder.Properties.Resources.zoomIconPlus;
+        Image zoomIconMinus = Pathfinder.Properties.Resources.zoomIconMinus;
+        Image resetIcon = Pathfinder.Properties.Resources.resetIcon;
+        Image helpIcon = Pathfinder.Properties.Resources.helpIcon;
         //Settings
         bool gridBoundary = true, debug = false;
 
         //Controls 
+        VScrollBar vScrollBar = new VScrollBar();
+        HScrollBar hScrollBar = new HScrollBar();
+
         Button AStarpathFind = new Button();
         Button startPathfinding = new Button();
         Button clearGridBtn = new Button();
@@ -63,6 +71,10 @@ namespace Pathfinder
         Button mazeBtn = new Button();
         Button settingsBtn = new Button();
         Button loadPatternBtn = new Button();
+        Button zoomInBtn = new Button();
+        Button resetViewBtn = new Button();
+        Button zoomOutBtn = new Button();
+        Button helpBtn = new Button();
 
         //Drawing
         Point cursor;
@@ -121,6 +133,8 @@ namespace Pathfinder
             //Who settings menu
             settingsBtn_Click(this, new EventArgs());
             UpdateLayout();
+
+            resetCellSize();
         }
 
         private async void GenerateMaze_Click(object sender, EventArgs e)
@@ -385,6 +399,7 @@ namespace Pathfinder
 
         private void AddObstacle(MouseEventArgs eMouse, Point initOffset, Size size)
         {
+            AStarpathFind.Focus();
             if (isBusy == false)
             {
                 Point index = GetHoveredArrayIndex(eMouse.Location, initOffset, size);
@@ -495,10 +510,18 @@ namespace Pathfinder
                     }
                 }
             }
+            //if grid visibility setting is disabled 
             if (!gridBoundary)
             {
-                //draw outside grid boundary, if set to not disaply each cell
-                graphics.DrawRectangle(new Pen(Brushes.Black, 1), InitialOffset.X, InitialOffset.Y, rect.Width * grid.GetLength(0), rect.Height * grid.GetLength(1));
+                //draw outside grid boundary, if set to not display each cell
+                //and make the grid move, when shifting the view
+                //and make it thicc
+                Point startDrawPoint = new Point(InitialOffset.X - topLeftIndex.X * rectSize.Width + 1, InitialOffset.Y - topLeftIndex.Y * rectSize.Height + 1);
+                Rectangle drawArea = new Rectangle(startDrawPoint.X, startDrawPoint.Y, rect.Width * grid.GetLength(0) + 3, rect.Height * grid.GetLength(1) + 3);
+                graphics.DrawRectangle(new Pen(Brushes.Black, 2), drawArea);
+
+                //remove everything left of the left margin
+                graphics.FillRectangle(new SolidBrush(this.BackColor), 0, 0, InitialOffset.X, ClientSize.Height);
             }
         }
 
@@ -742,6 +765,7 @@ namespace Pathfinder
                 }
                 else { }
                 UpdateLayout();
+                resetCellSize();
                 this.Invalidate();
             }
         }
@@ -757,6 +781,7 @@ namespace Pathfinder
             //reset zoom and offset
             topLeftIndex = new Point(0, 0);
             Point TopLeftButtonPoint = new Point((int)(this.Width * 0.05), (int)(this.Height * 0.01));
+            Point TopRightButtonPoint = new Point((int)(this.Width * 0.95), (int)(this.Height * 0.01));
             Size fullButtonSize = new Size((int)(this.Width * 0.1), (int)(this.Height * 0.075));
             Size halfButtonSize = new Size((int)(this.Width * 0.1), (int)(this.Height * 0.035));
             //set minimum size for buttons
@@ -775,6 +800,14 @@ namespace Pathfinder
             Font fontFull = new Font("Arial", (int)(fullButtonSize.Height * 0.2), GraphicsUnit.Pixel);
             int Hpadding = (int)(this.Width * 0.01);
             int Vpadding = (int)(this.Height * .005);
+
+            //vScrollBar
+            vScrollBar.Maximum = grid.GetLength(1) * 3;
+            vScrollBar.Value = (int)(vScrollBar.Maximum / 2);
+            //hScrollBar
+            hScrollBar.Maximum = grid.GetLength(0) * 3;
+            hScrollBar.Value = (int)(hScrollBar.Maximum / 2);
+
             //AStarpathFind
             AStarpathFind.Location = TopLeftButtonPoint;
             AStarpathFind.Size = fullButtonSize;
@@ -843,15 +876,37 @@ namespace Pathfinder
             setupButtonIcon(loadPatternBtn, saveIcon);
 
 
+            //Right allign
+
+            //helpBtn
+            helpBtn.Size = new Size(halfButtonSize.Height, halfButtonSize.Height);
+            helpBtn.Location = TopRightButtonPoint;
+            setupButtonIcon(helpBtn, helpIcon);
+            helpBtn.ImageAlign = ContentAlignment.MiddleCenter;//manually reset alignment
+
+            //zoomOutBtn
+            zoomOutBtn.Size = new Size(halfButtonSize.Height, halfButtonSize.Height);
+            zoomOutBtn.Location = new Point(helpBtn.Left - Hpadding / 2 - zoomOutBtn.Width, TopRightButtonPoint.Y);
+            setupButtonIcon(zoomOutBtn, zoomIconMinus);
+            zoomOutBtn.ImageAlign = ContentAlignment.MiddleCenter;//manually reset alignment
+
+            //resetViewBtn
+            resetViewBtn.Size = new Size(halfButtonSize.Height, halfButtonSize.Height);
+            resetViewBtn.Location = new Point(zoomOutBtn.Left - Hpadding / 2 - resetViewBtn.Width, TopRightButtonPoint.Y);
+            setupButtonIcon(resetViewBtn, resetIcon);
+            resetViewBtn.ImageAlign = ContentAlignment.MiddleCenter;//manually reset alignment
+
+            //zoomInBtn
+            zoomInBtn.Size = new Size(halfButtonSize.Height, halfButtonSize.Height);
+            zoomInBtn.Location = new Point(resetViewBtn.Left - Hpadding / 2 - zoomInBtn.Width, TopRightButtonPoint.Y);
+            setupButtonIcon(zoomInBtn, zoomIconPlus);
+            zoomInBtn.ImageAlign = ContentAlignment.MiddleCenter;//manually reset alignment
+
 
             //Grid offset from top left corner
             InitialOffset = new Point(TopLeftButtonPoint.X, TopLeftButtonPoint.Y + fullButtonSize.Height + 2 * Vpadding);
 
-            //Get new max grid size
-            Size maxGridCellSize = new Size((int)(((this.ClientSize.Width * 0.97) - InitialOffset.X) / grid.GetLength(0)), (int)(((this.ClientSize.Height * 0.99) - InitialOffset.Y) / grid.GetLength(1)));
-            if (maxGridCellSize.Width == 0 || maxGridCellSize.Height == 0) { rectSize = new Size(1, 1); }
-            else if (maxGridCellSize.Width <= maxGridCellSize.Height) { rectSize = new Size(maxGridCellSize.Width, maxGridCellSize.Width); }
-            else { rectSize = new Size(maxGridCellSize.Height, maxGridCellSize.Height); }
+
 
             //Debug layout 
             if (debug)
@@ -897,6 +952,17 @@ namespace Pathfinder
             //updater Timer
             updater.Interval = 1000;
             updater.Tick += Updater_Tick;
+
+            //Vertical Scroll bar
+            //vScrollBar.Size = new Size(20, ClientSize.Height);
+            vScrollBar.Dock = DockStyle.Right;
+            vScrollBar.ValueChanged += VScrollBar_ValueChanged;
+            Controls.Add(vScrollBar);
+
+            //Horizontal Scroll bar
+            hScrollBar.Dock = DockStyle.Bottom;
+            hScrollBar.ValueChanged += HScrollBar_ValueChanged;
+            Controls.Add(hScrollBar);
 
             //AStarpathFind Button
             AStarpathFind.FlatStyle = FlatStyle.Flat;
@@ -979,6 +1045,26 @@ namespace Pathfinder
             loadPatternBtn.Text = " Save / Load Pattern";
             loadPatternBtn.Click += LoadPatternBtn_Click;
             Controls.Add(loadPatternBtn);
+
+            //zoomInBtn Button
+            zoomInBtn.FlatStyle = FlatStyle.Flat;
+            zoomInBtn.Click += ZoomInBtn_Click;
+            Controls.Add(zoomInBtn);
+
+            //resetViewBtn Button
+            resetViewBtn.FlatStyle = FlatStyle.Flat;
+            resetViewBtn.Click += ResetViewBtn_Click;
+            Controls.Add(resetViewBtn);
+
+            //zoomOutBtn Button
+            zoomOutBtn.FlatStyle = FlatStyle.Flat;
+            zoomOutBtn.Click += ZoomOutBtn_Click;
+            Controls.Add(zoomOutBtn);
+
+            //helpBtn Button
+            helpBtn.FlatStyle = FlatStyle.Flat;
+            helpBtn.Click += HelpBtn_Click;
+            Controls.Add(helpBtn);
         }
 
         private void setupButtonIcon(Button button, Image icon)
@@ -1001,30 +1087,32 @@ namespace Pathfinder
             //Move sideways with shift
             else if (shiftDown)
             {
-                if (e.Delta > 0)
+                if (e.Delta > 0 && hScrollBar.Value - offsetAmount >= 0)
                 {
-                    topLeftIndex.X += offsetAmount;
-                    this.Invalidate();
+                    hScrollBar.Value -= offsetAmount;
+                    //this.Invalidate();
                 }
-                else
+                else if (hScrollBar.Value + offsetAmount <= hScrollBar.Maximum)
                 {
-                    topLeftIndex.X -= offsetAmount;
-                    this.Invalidate();
+                    hScrollBar.Value += offsetAmount;
+                    //this.Invalidate();
                 }
             }
             //Move up by default
             else
             {
-                if (e.Delta > 0)
+                if (e.Delta > 0 && vScrollBar.Value - offsetAmount >= 0)
                 {
-                    topLeftIndex.Y -= offsetAmount;
-                    this.Invalidate();
+                    vScrollBar.Value -= offsetAmount;
+                    //this.Invalidate();
                 }
-                else
+                else if (vScrollBar.Value + offsetAmount <= vScrollBar.Maximum)
                 {
-                    topLeftIndex.Y += offsetAmount;
-                    this.Invalidate();
+                    vScrollBar.Value += offsetAmount;
+                    //this.Invalidate();
                 }
+                //vScrollBar.Value = topLeftIndex.Y + (int)(grid.GetLength(1) * 1.5);
+
             }
 
         }
@@ -1045,22 +1133,65 @@ namespace Pathfinder
 
         private async void Zoom(bool zoomIn)
         {
+            double offsetAmount = xDown ? .3 : .1;
             if (zoomIn)
             {
-                rectSize = Size.Add(rectSize, new Size(1, 1));
+                rectSize = Size.Add(rectSize, new Size((int)Math.Ceiling(rectSize.Width * offsetAmount), (int)Math.Ceiling(rectSize.Height * offsetAmount)));
             }
             else if (rectSize.Height > 1)
             {
-                rectSize = Size.Subtract(rectSize, new Size(1, 1));
+                rectSize = Size.Subtract(rectSize, new Size((int)Math.Ceiling(rectSize.Width * offsetAmount), (int)Math.Ceiling(rectSize.Height * offsetAmount)));
             }
             await Task.Run(() => this.Invalidate());
         }
-        //Detect keys
 
+        private void ZoomOutBtn_Click(object sender, EventArgs e)
+        {
+            Zoom(false);
+        }
+
+        private void ResetViewBtn_Click(object sender, EventArgs e)
+        {
+            resetCellSize();
+            UpdateLayout();
+            this.Invalidate();
+        }
+
+        private void ZoomInBtn_Click(object sender, EventArgs e)
+        {
+            Zoom(true);
+        }
+        //updateTopLeftIndex when shifting view
+        private void HScrollBar_ValueChanged(object sender, EventArgs e)
+        {
+            topLeftIndex.X = hScrollBar.Value - (int)(grid.GetLength(0) * 1.5);
+            this.Invalidate();
+        }
+        //updateTopLeftIndex when shifting view
+        private void VScrollBar_ValueChanged(object sender, EventArgs e)
+        {
+            // update TopLeftIndex value
+            topLeftIndex.Y = vScrollBar.Value - (int)(grid.GetLength(1) * 1.5);
+            this.Invalidate();
+        }
+        //resets maximum grid cell size to default
+        private void resetCellSize()
+        {
+            //Get new max grid size
+            Size maxGridCellSize = new Size((int)(((this.ClientSize.Width * 0.97) - InitialOffset.X) / grid.GetLength(0)), (int)(((this.ClientSize.Height * 0.99) - InitialOffset.Y) / grid.GetLength(1)));
+            if (maxGridCellSize.Width == 0 || maxGridCellSize.Height == 0) { rectSize = new Size(1, 1); }
+            else if (maxGridCellSize.Width <= maxGridCellSize.Height) { rectSize = new Size(maxGridCellSize.Width, maxGridCellSize.Width); }
+            else { rectSize = new Size(maxGridCellSize.Height, maxGridCellSize.Height); }
+        }
+
+        private void HelpBtn_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("Available Shortcuts:\n \nMouse wheel: Shift view up / down\n \nShift + Mouse wheel: Shift view left / right\n \nControl + Mouse wheel: Zoom in / out\n \nHolding \"x\" increases speed");
+        }
     }
 
 
-    //Allow console to be started0
+    //Allow console to be started
     //oh fuck, do i need all this? (yes)
     //[DllImport("kernel32.dll", SetLastError = true)]
     //[return: MarshalAs(UnmanagedType.Bool)]

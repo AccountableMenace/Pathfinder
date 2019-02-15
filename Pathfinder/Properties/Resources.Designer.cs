@@ -93,6 +93,16 @@ namespace Pathfinder.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap helpIcon {
+            get {
+                object obj = ResourceManager.GetObject("helpIcon", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap pathIcon {
             get {
                 object obj = ResourceManager.GetObject("pathIcon", resourceCulture);
@@ -113,6 +123,16 @@ namespace Pathfinder.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap resetIcon {
+            get {
+                object obj = ResourceManager.GetObject("resetIcon", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap saveIcon {
             get {
                 object obj = ResourceManager.GetObject("saveIcon", resourceCulture);
@@ -126,6 +146,26 @@ namespace Pathfinder.Properties {
         internal static System.Drawing.Bitmap settingsIcon {
             get {
                 object obj = ResourceManager.GetObject("settingsIcon", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap zoomIconMinus {
+            get {
+                object obj = ResourceManager.GetObject("zoomIconMinus", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap zoomIconPlus {
+            get {
+                object obj = ResourceManager.GetObject("zoomIconPlus", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
