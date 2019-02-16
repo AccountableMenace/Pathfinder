@@ -34,7 +34,7 @@ namespace Pathfinder
         bool controlDown = false;
         bool shiftDown = false;
         bool xDown = false;
-        string version = "v1.0.5";
+        string version = "v1.1.0";
         DateTime startTime = DateTime.Now;
         List<Control> controlsToUpdate = new List<Control>();
         Point topLeftIndex = new Point(0, 0);
