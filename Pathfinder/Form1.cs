@@ -17,11 +17,10 @@ namespace Pathfinder
     {
         /*
         ---------------TO DO--------------------
-        autosave patterns
-        Reduce lag on zooming / shifting view (massive grids)
-        Fucking ui
-        reset view button
-        add grid size/ zoom info in the bottom
+        autosave patterns (is that really necessary?)
+        Reduce lag on zooming / shifting view (massive grids) (how?)
+        Fucking ui (just no)
+        Update version numbers
 
         */
         //Variables
@@ -35,6 +34,7 @@ namespace Pathfinder
         bool controlDown = false;
         bool shiftDown = false;
         bool xDown = false;
+        string version = "v1.0.5";
         DateTime startTime = DateTime.Now;
         List<Control> controlsToUpdate = new List<Control>();
         Point topLeftIndex = new Point(0, 0);
@@ -57,6 +57,13 @@ namespace Pathfinder
         //Controls 
         VScrollBar vScrollBar = new VScrollBar();
         HScrollBar hScrollBar = new HScrollBar();
+        //StatusBar
+        StatusBar statusBar = new StatusBar();
+        StatusBarPanel gridSizePanel = new StatusBarPanel();
+        StatusBarPanel distancePanel = new StatusBarPanel();
+        StatusBarPanel timingPanel = new StatusBarPanel();
+        StatusBarPanel stepCountPanel = new StatusBarPanel();
+        //
 
         Button AStarpathFind = new Button();
         Button startPathfinding = new Button();
@@ -65,9 +72,6 @@ namespace Pathfinder
         Button fillGridBtn = new Button();
         Button drawWallBtn = new Button();
         Button drawStartBtn = new Button();
-        Label distanceLbl = new Label();
-        Label timingLbl = new Label();
-        Label stepCountLbl = new Label();
         Button mazeBtn = new Button();
         Button settingsBtn = new Button();
         Button loadPatternBtn = new Button();
@@ -117,14 +121,13 @@ namespace Pathfinder
             this.KeyDown += Form1_KeyDown;
             this.KeyUp += Form1_KeyUp;
 
-
             Console.WriteLine(getTime() + "Initialized");
             //Form properties
             this.DoubleBuffered = true;
             this.ClientSize = new Size(1280, 700);
             this.WindowState = FormWindowState.Maximized;
             this.MinimumSize = new Size(510, 480);
-            this.Text = "Pathfinder by Accountable Menace";
+            this.Text = "Pathfinder " + version + " by Accountable Menace";
             //allow key down detection anywhere
             this.KeyPreview = true;
 
@@ -180,21 +183,22 @@ namespace Pathfinder
                 sendSize = new Size(grid.GetLength(0), grid.GetLength(1));
             else sendSize = new Size(100, 50);
 
-            using (Settings gridPropertiesWindow = new Settings(sendSize, gridBoundary, debug))
+            using (SettingsWindow settingsWindow = new SettingsWindow(sendSize, gridBoundary, debug))
             {
-                if (gridPropertiesWindow.ShowDialog() == DialogResult.OK)
+                if (settingsWindow.ShowDialog() == DialogResult.OK)
                 {
                     //get new size
                     //only if size is different
-                    int[] newsize = new int[] { gridPropertiesWindow.returnSize[0], gridPropertiesWindow.returnSize[1] };
+                    int[] newsize = new int[] { settingsWindow.returnSize[0], settingsWindow.returnSize[1] };
                     if (firstTimesettingGridSize || (grid.GetLength(0) != newsize[0] || grid.GetLength(1) != newsize[1]))
                         grid = new int[newsize[0], newsize[1]];
                     //get settings
-                    gridBoundary = gridPropertiesWindow.returnSettings[0];
-                    debug = gridPropertiesWindow.returnSettings[1];
+                    gridBoundary = settingsWindow.returnSettings[0];
+                    debug = settingsWindow.returnSettings[1];
                     if (debug) MessageBox.Show("Debug mode is on, you may experience bugs!", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     firstTimesettingGridSize = false;
                     UpdateLayout();
+                    resetCellSize();
                     this.Invalidate();
                 }
                 else if (firstTimesettingGridSize)
@@ -256,14 +260,15 @@ namespace Pathfinder
                 pathfindTime.Stop();
                 long timeTaken = pathfindTime.ElapsedMilliseconds;
 
-                distanceLbl.Text = "Distance: " + returnedData[0];
-                timingLbl.Text = "Time taken: " + ((double)timeTaken / 1000).ToString() + " s";
+                distancePanel.Text = "Distance: " + returnedData[0];
+                timingPanel.Text = "Time taken: " + ((double)timeTaken / 1000).ToString() + " s";
                 this.Invalidate();
                 this.BackColor = default(Color);
                 updater.Stop();
                 isBusy = false;
             }
             else MessageBox.Show(this, "Path search already in progress", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            statusBarUpdateGridSize();
         }
 
         private Point[] getStartEndPoints()
@@ -299,7 +304,7 @@ namespace Pathfinder
             pathfindTime.Restart();
             this.BackColor = ColorTranslator.FromHtml("#bdc3c7");
             ResetGrid(true, false);
-            distanceLbl.Text = "Distance: N/A";
+            distancePanel.Text = "Distance: N/A";
             //
             Point[] StartEnd = getStartEndPoints();
             Console.Write("at positions " + StartEnd[0] + " and " + StartEnd[1] + "\n");
@@ -323,11 +328,11 @@ namespace Pathfinder
                                 grid[pathCell.X, pathCell.Y] = 3;
                             }
                         }
-                        distanceLbl.Text = "Distance: " + pathData[0].Count();
+                        distancePanel.Text = "Distance: " + pathData[0].Count();
                     }
                     else
                     {
-                        distanceLbl.Text = "Distance: N/A";
+                        distancePanel.Text = "Distance: N/A";
                         pathfindTime.Stop();
                         Console.WriteLine(getTime() + "Couldn't find path, Start " + StartEnd[0].ToString() + ", goal " + StartEnd[1].ToString());
                         MessageBox.Show("No Path", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1);
@@ -359,11 +364,12 @@ namespace Pathfinder
             drawCost = true;
             pathfindTime.Stop();
             long timeTaken = pathfindTime.ElapsedMilliseconds;
-            timingLbl.Text = "Time taken: " + ((double)timeTaken / 1000).ToString() + " s";
-            stepCountLbl.Text = "Step count: " + aStarPathfind.stepCount;
+            timingPanel.Text = "Time taken: " + ((double)timeTaken / 1000).ToString() + " s";
+            stepCountPanel.Text = "Step count: " + aStarPathfind.stepCount;
             this.Invalidate();
             this.BackColor = default(Color);
             isBusy = false;
+            statusBarUpdateGridSize();
         }
 
         private void Form1_MouseClick(object sender, MouseEventArgs e)
@@ -517,7 +523,7 @@ namespace Pathfinder
                 //and make the grid move, when shifting the view
                 //and make it thicc
                 Point startDrawPoint = new Point(InitialOffset.X - topLeftIndex.X * rectSize.Width + 1, InitialOffset.Y - topLeftIndex.Y * rectSize.Height + 1);
-                Rectangle drawArea = new Rectangle(startDrawPoint.X, startDrawPoint.Y, rect.Width * grid.GetLength(0) + 3, rect.Height * grid.GetLength(1) + 3);
+                Rectangle drawArea = new Rectangle(startDrawPoint.X, startDrawPoint.Y, rect.Width * grid.GetLength(0), rect.Height * grid.GetLength(1));
                 graphics.DrawRectangle(new Pen(Brushes.Black, 2), drawArea);
 
                 //remove everything left of the left margin
@@ -723,7 +729,6 @@ namespace Pathfinder
                 else { MessageBox.Show("Error", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1); break; }
             }
             return distance + 1;
-            //distanceLbl.Text = "Distance: " + distance.ToString();
         }
 
         private void HighlightSelectedButton(string type)
@@ -780,8 +785,10 @@ namespace Pathfinder
         {
             //reset zoom and offset
             topLeftIndex = new Point(0, 0);
+            int Hpadding = (int)(this.Width * 0.01);
+            int Vpadding = (int)(this.Height * .005);
             Point TopLeftButtonPoint = new Point((int)(this.Width * 0.05), (int)(this.Height * 0.01));
-            Point TopRightButtonPoint = new Point((int)(this.Width * 0.95), (int)(this.Height * 0.01));
+            Point TopRightButtonPoint = new Point(ClientSize.Width - vScrollBar.Width - Hpadding, (int)(this.Height * 0.01));
             Size fullButtonSize = new Size((int)(this.Width * 0.1), (int)(this.Height * 0.075));
             Size halfButtonSize = new Size((int)(this.Width * 0.1), (int)(this.Height * 0.035));
             //set minimum size for buttons
@@ -798,9 +805,8 @@ namespace Pathfinder
 
             //if (fontSizeHalf < 13) fontSizeHalf = 13;
             Font fontFull = new Font("Arial", (int)(fullButtonSize.Height * 0.2), GraphicsUnit.Pixel);
-            int Hpadding = (int)(this.Width * 0.01);
-            int Vpadding = (int)(this.Height * .005);
 
+            //Docked controls
             //vScrollBar
             vScrollBar.Maximum = grid.GetLength(1) * 3;
             vScrollBar.Value = (int)(vScrollBar.Maximum / 2);
@@ -846,20 +852,8 @@ namespace Pathfinder
             //for label size determination
             Size maxSize = TextRenderer.MeasureText("Time taken: 00.000s ", this.Font);
 
-            //distanceLbl Label
-            distanceLbl.Location = new Point(drawStartBtn.Right + Hpadding, TopLeftButtonPoint.Y);
-            distanceLbl.Size = maxSize;
-
-            //timingLbl Label
-            timingLbl.Location = new Point(distanceLbl.Left, distanceLbl.Bottom);
-            timingLbl.Size = maxSize;
-
-            //stepCountLbl Label
-            stepCountLbl.Location = new Point(distanceLbl.Left, timingLbl.Bottom);
-            stepCountLbl.Size = maxSize;
-
             //mazeBtn
-            mazeBtn.Location = new Point(timingLbl.Right + Hpadding, TopLeftButtonPoint.Y);
+            mazeBtn.Location = new Point(drawStartBtn.Right + Hpadding, TopLeftButtonPoint.Y);
             mazeBtn.Font = fontFull;
             mazeBtn.Size = fullButtonSize;
             //mazeBtn.Font = fontFull;
@@ -880,7 +874,7 @@ namespace Pathfinder
 
             //helpBtn
             helpBtn.Size = new Size(halfButtonSize.Height, halfButtonSize.Height);
-            helpBtn.Location = TopRightButtonPoint;
+            helpBtn.Location = new Point(TopRightButtonPoint.X - helpBtn.Width, TopRightButtonPoint.Y);
             setupButtonIcon(helpBtn, helpIcon);
             helpBtn.ImageAlign = ContentAlignment.MiddleCenter;//manually reset alignment
 
@@ -927,6 +921,7 @@ namespace Pathfinder
                 //Reset only the visibilities
                 startPathfinding.Visible = false;
             }
+            statusBarUpdateGridSize();
         }
 
         private async void Form1_ResizeEnd(object sender, EventArgs e)
@@ -949,9 +944,24 @@ namespace Pathfinder
 
         private void InitializeAll()
         {
+            ToolTip ResetTooltip = new ToolTip();
             //updater Timer
             updater.Interval = 1000;
             updater.Tick += Updater_Tick;
+
+
+            //statusBar StatusBar
+            statusBar.Dock = DockStyle.Bottom;
+            statusBar.ShowPanels = true;
+            statusBar.Panels.Add(gridSizePanel);
+            gridSizePanel.AutoSize = StatusBarPanelAutoSize.Contents;
+            statusBar.Panels.Add(distancePanel);
+            distancePanel.AutoSize = StatusBarPanelAutoSize.Contents;
+            statusBar.Panels.Add(timingPanel);
+            timingPanel.AutoSize = StatusBarPanelAutoSize.Contents;
+            statusBar.Panels.Add(stepCountPanel);
+            stepCountPanel.AutoSize = StatusBarPanelAutoSize.Contents;
+            Controls.Add(statusBar);
 
             //Vertical Scroll bar
             //vScrollBar.Size = new Size(20, ClientSize.Height);
@@ -964,6 +974,7 @@ namespace Pathfinder
             hScrollBar.ValueChanged += HScrollBar_ValueChanged;
             Controls.Add(hScrollBar);
 
+
             //AStarpathFind Button
             AStarpathFind.FlatStyle = FlatStyle.Flat;
             AStarpathFind.Text = " A* Pathfind";
@@ -975,6 +986,7 @@ namespace Pathfinder
             startPathfinding.Text = "Run Flood Search";
             startPathfinding.Click += new EventHandler(this.startPathfinding_click);
             startPathfinding.Visible = false;
+            ResetTooltip.SetToolTip(startPathfinding, "Very inneficient");
             Controls.Add(startPathfinding);
 
             //clear grid Button
@@ -1004,6 +1016,7 @@ namespace Pathfinder
             drawWallBtn.ForeColor = Color.White;
             drawWallBtn.FlatAppearance.BorderColor = Color.Red;
             drawWallBtn.FlatAppearance.BorderSize = 1;
+            ResetTooltip.SetToolTip(drawWallBtn, "Draw walls");
             Controls.Add(drawWallBtn);
 
             //drawStart Button
@@ -1013,20 +1026,8 @@ namespace Pathfinder
             drawStartBtn.BackColor = (Color)ColorTranslator.FromHtml("#4cd137");
             drawStartBtn.FlatAppearance.BorderColor = Color.Red;
             drawStartBtn.FlatAppearance.BorderSize = 0;
+            ResetTooltip.SetToolTip(drawStartBtn, "Set start / end points");
             Controls.Add(drawStartBtn);
-
-
-            //distanceLbl Label
-            distanceLbl.Text = "Distance: ";
-            Controls.Add(distanceLbl);
-
-            //timingLbl Label
-            timingLbl.Text = "Time taken: ";
-            Controls.Add(timingLbl);
-
-            //stepCountLbl Label
-            stepCountLbl.Text = "Step count: ";
-            Controls.Add(stepCountLbl);
 
             //mazeBtn Button
             mazeBtn.FlatStyle = FlatStyle.Flat;
@@ -1049,21 +1050,25 @@ namespace Pathfinder
             //zoomInBtn Button
             zoomInBtn.FlatStyle = FlatStyle.Flat;
             zoomInBtn.Click += ZoomInBtn_Click;
+            ResetTooltip.SetToolTip(zoomInBtn, "Zoom in");
             Controls.Add(zoomInBtn);
 
             //resetViewBtn Button
             resetViewBtn.FlatStyle = FlatStyle.Flat;
             resetViewBtn.Click += ResetViewBtn_Click;
+            ResetTooltip.SetToolTip(resetViewBtn, "Reset to default view");
             Controls.Add(resetViewBtn);
 
             //zoomOutBtn Button
             zoomOutBtn.FlatStyle = FlatStyle.Flat;
             zoomOutBtn.Click += ZoomOutBtn_Click;
+            ResetTooltip.SetToolTip(zoomOutBtn, "Zoom out");
             Controls.Add(zoomOutBtn);
 
             //helpBtn Button
             helpBtn.FlatStyle = FlatStyle.Flat;
             helpBtn.Click += HelpBtn_Click;
+            ResetTooltip.SetToolTip(helpBtn, "See keyboard shortcuts");
             Controls.Add(helpBtn);
         }
 
@@ -1078,7 +1083,9 @@ namespace Pathfinder
 
         private void Form1_MouseWheel(object sender, MouseEventArgs e)
         {
-            int offsetAmount = xDown ? 5 : 1;
+            //Set offset, depending on whether the user is holding down x
+            int vOffsetAmount = xDown ? (int)Math.Ceiling(this.Height / rectSize.Height * 0.2) : (int)Math.Ceiling(this.Height / rectSize.Height * 0.04);
+            int hOffsetAmount = xDown ? (int)Math.Ceiling(this.Height / rectSize.Height * 0.2) : (int)Math.Ceiling(this.Height / rectSize.Height * 0.04);
             //Zoom in with control
             if (controlDown)
             {
@@ -1087,28 +1094,28 @@ namespace Pathfinder
             //Move sideways with shift
             else if (shiftDown)
             {
-                if (e.Delta > 0 && hScrollBar.Value - offsetAmount >= 0)
+                if (e.Delta > 0 && hScrollBar.Value - hOffsetAmount >= 0)
                 {
-                    hScrollBar.Value -= offsetAmount;
+                    hScrollBar.Value -= hOffsetAmount;
                     //this.Invalidate();
                 }
-                else if (hScrollBar.Value + offsetAmount <= hScrollBar.Maximum)
+                else if (hScrollBar.Value + hOffsetAmount <= hScrollBar.Maximum)
                 {
-                    hScrollBar.Value += offsetAmount;
+                    hScrollBar.Value += hOffsetAmount;
                     //this.Invalidate();
                 }
             }
-            //Move up by default
+            //Move up / down by default
             else
             {
-                if (e.Delta > 0 && vScrollBar.Value - offsetAmount >= 0)
+                if (e.Delta > 0 && vScrollBar.Value - vOffsetAmount >= 0)
                 {
-                    vScrollBar.Value -= offsetAmount;
+                    vScrollBar.Value -= vOffsetAmount;
                     //this.Invalidate();
                 }
-                else if (vScrollBar.Value + offsetAmount <= vScrollBar.Maximum)
+                else if (vScrollBar.Value + vOffsetAmount <= vScrollBar.Maximum)
                 {
-                    vScrollBar.Value += offsetAmount;
+                    vScrollBar.Value += vOffsetAmount;
                     //this.Invalidate();
                 }
                 //vScrollBar.Value = topLeftIndex.Y + (int)(grid.GetLength(1) * 1.5);
@@ -1186,7 +1193,16 @@ namespace Pathfinder
 
         private void HelpBtn_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("Available Shortcuts:\n \nMouse wheel: Shift view up / down\n \nShift + Mouse wheel: Shift view left / right\n \nControl + Mouse wheel: Zoom in / out\n \nHolding \"x\" increases speed");
+            using (InfoForm infoForm = new InfoForm(version))
+            {
+                infoForm.ShowDialog();
+            }
+        }
+
+        private void statusBarUpdateGridSize()
+        {
+            gridSizePanel.Text = String.Format("Grid size: {0} x {1}", grid.GetLength(0).ToString(), grid.GetLength(1).ToString());
+            //distancePanel.Text = "Distance : " +    
         }
     }
 

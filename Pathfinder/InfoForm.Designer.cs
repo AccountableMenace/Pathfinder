@@ -1,6 +1,6 @@
 ﻿namespace Pathfinder
 {
-    partial class SettingsWindow
+    partial class InfoForm
     {
         /// <summary>
         /// Required designer variable.
@@ -30,7 +30,7 @@
         {
             this.components = new System.ComponentModel.Container();
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Text = "GridPropertiesWindow";
+            this.Text = "InfoForm";
         }
 
         #endregion
