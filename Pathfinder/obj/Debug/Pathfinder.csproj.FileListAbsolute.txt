@@ -9,3 +9,14 @@ C:\Users\Vilmantas\Documents\Visual Studio 2015\Projects\Pathfinder\Pathfinder\o
 C:\Users\Vilmantas\Documents\Visual Studio 2015\Projects\Pathfinder\Pathfinder\obj\Debug\Pathfinder.PatternSelection.resources
 C:\Users\Vilmantas\documents\visual studio 2015\Projects\Pathfinder\Pathfinder\obj\Debug\Pathfinder.MazeGenerationConfig.resources
 C:\Users\Vilmantas\documents\visual studio 2015\Projects\Pathfinder\Pathfinder\obj\Debug\Pathfinder.csprojResolveAssemblyReference.cache
+C:\Users\Vilmantas\Desktop\Pathfinder\Pathfinder\bin\Debug\Pathfinder.exe.config
+C:\Users\Vilmantas\Desktop\Pathfinder\Pathfinder\obj\Debug\Pathfinder.exe
+C:\Users\Vilmantas\Desktop\Pathfinder\Pathfinder\obj\Debug\Pathfinder.pdb
+C:\Users\Vilmantas\Desktop\Pathfinder\Pathfinder\bin\Debug\Pathfinder.exe
+C:\Users\Vilmantas\Desktop\Pathfinder\Pathfinder\bin\Debug\Pathfinder.pdb
+C:\Users\Vilmantas\Desktop\Pathfinder\Pathfinder\obj\Debug\Pathfinder.csprojResolveAssemblyReference.cache
+C:\Users\Vilmantas\Desktop\Pathfinder\Pathfinder\obj\Debug\Pathfinder.Form1.resources
+C:\Users\Vilmantas\Desktop\Pathfinder\Pathfinder\obj\Debug\Pathfinder.MazeGenerationConfig.resources
+C:\Users\Vilmantas\Desktop\Pathfinder\Pathfinder\obj\Debug\Pathfinder.PatternSelection.resources
+C:\Users\Vilmantas\Desktop\Pathfinder\Pathfinder\obj\Debug\Pathfinder.Properties.Resources.resources
+C:\Users\Vilmantas\Desktop\Pathfinder\Pathfinder\obj\Debug\Pathfinder.csproj.GenerateResource.Cache

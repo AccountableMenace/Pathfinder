@@ -10,6 +10,7 @@ namespace Pathfinder
     {
         public string name { get; set; }
         public string fullPath { get; set; }
+        public string extension { get; set; }
         public override string ToString()
         {
             return string.Format(name);

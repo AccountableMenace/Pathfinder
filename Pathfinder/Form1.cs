@@ -11,6 +11,8 @@ using System.Windows;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows.Input;
+using System.IO;
+
 namespace Pathfinder
 {
     public partial class Form1 : Form
@@ -136,8 +138,6 @@ namespace Pathfinder
             //Who settings menu
             settingsBtn_Click(this, new EventArgs());
             UpdateLayout();
-
-            resetCellSize();
         }
 
         private async void GenerateMaze_Click(object sender, EventArgs e)
