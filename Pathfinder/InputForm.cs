@@ -17,7 +17,6 @@ namespace Pathfinder
         Button Confirm = new Button();
         Button Cancel = new Button();
         ComboBox typeDropDown = new ComboBox();
-        CheckBox toSavePath = new CheckBox();
         public string ReturnValue { get; set; } = "undefined";
         public string ReturnType { get; set; }
         public InputForm(string titleText)
@@ -54,10 +53,6 @@ namespace Pathfinder
             Cancel.Click += Cancel_Click;
             Controls.Add(Cancel);
 
-            //toSavePath CheckBox
-            toSavePath.Text = "Save Path";
-            Controls.Add(toSavePath);
-
             //typeComboBox TextBox
             typeDropDown.Font= font;
             typeDropDown.Items.Add(".pattern");
@@ -76,10 +71,6 @@ namespace Pathfinder
             //txtBox
             txtBox.Location = new Point((int)(ClientSize.Width * 0.04), titleLbl.Bottom + marginBottom);
             txtBox.Size = new Size((int)(this.ClientSize.Width * .92), txtBox.Height);
-
-            //toSavepath CheckBox
-          //  toSavepath.Location = new Point((int)(ClientSize.Width * 0.04), titleLbl.Bottom + marginBottom);
-           // toSavepath.Size = new Size((int)(this.ClientSize.Width * .92), txtBox.Height);
 
             //typeDropDown
             typeDropDown.Location = new Point((int)(ClientSize.Width * 0.04), txtBox.Bottom + marginBottom);

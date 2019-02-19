@@ -59,7 +59,7 @@ namespace Pathfinder
                     }
                     return outFormatted;
                 }
-                catch (Exception er)
+                catch (Exception)
                 {
                     System.Windows.Forms.MessageBox.Show("Error, invalid file. The file is most likely corrupt");
                 }
@@ -99,6 +99,14 @@ namespace Pathfinder
                     else if (gridData[j, i] == 2)
                     {
                         img.SetPixel(j, i, Color.FromArgb(0, 255, 0));
+                    }
+                    else if (gridData[j, i] == -1)
+                    {
+                        img.SetPixel(j, i, Color.FromArgb(255, 255, 0));
+                    }
+                    else if (gridData[j, i] == 3)
+                    {
+                        img.SetPixel(j, i, Color.FromArgb(0, 255, 255));
                     }
                 }
             }

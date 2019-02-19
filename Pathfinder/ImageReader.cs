@@ -28,6 +28,15 @@ namespace Pathfinder
                     {
                         gridData[i, j] = 2;
                     }
+                    else if (pixel == Color.FromArgb(255, 255, 0))
+                    {
+                        gridData[i, j] = -1;
+                    }
+                    else if (pixel == Color.FromArgb(0, 255, 255))
+                    {
+                        gridData[i, j] = 3;
+                    }
+
                 }
             }
             return gridData;
