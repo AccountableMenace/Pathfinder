@@ -14,7 +14,7 @@ namespace Pathfinder
 {
     public partial class PatternSelection : Form
     {
-        Button okBtn = new Button();
+        Button loadBtn = new Button();
         Button closeBtn = new Button();
         Button saveNew = new Button();
         Button saveReplace = new Button();
@@ -23,12 +23,13 @@ namespace Pathfinder
         ListBox PatternList = new ListBox();
 
         ContextMenuStrip contextMenuStrip = new ContextMenuStrip();
-        
+
         string pathToFile;
         int[,] gridData;
         public int[,] ReturnPattern { get; set; }
         List<FileListStruct> fileList;
         FileReaderWriter fileReaderWriter = new FileReaderWriter();
+        ImageReader imgRead = new ImageReader();
 
         public PatternSelection(int[,] mainGridData)
         {
@@ -45,7 +46,7 @@ namespace Pathfinder
             this.MinimizeBox = false;
             this.Text = "Patterns";
 
-            AcceptButton = okBtn;
+            AcceptButton = loadBtn;
             Font font = new Font(this.Font.FontFamily, 16);
             Font fontSmall = new Font(this.Font.FontFamily, 10);
 
@@ -60,10 +61,10 @@ namespace Pathfinder
             Controls.Add(PatternList);
 
             //okBtn Button
-            okBtn.FlatStyle = FlatStyle.Flat;
-            okBtn.Text = "Load";
-            okBtn.Click += OkBtn_Click;
-            Controls.Add(okBtn);
+            loadBtn.FlatStyle = FlatStyle.Flat;
+            loadBtn.Text = "Load";
+            loadBtn.Click += loadBtn_Click;
+            Controls.Add(loadBtn);
 
             //closeBtn Button
             closeBtn.FlatStyle = FlatStyle.Flat;
@@ -83,10 +84,22 @@ namespace Pathfinder
             saveReplace.Click += SaveReplace_Click;
             Controls.Add(saveReplace);
 
-            //menuStrip 
-            ToolStripMenuItem menuItem = new ToolStripMenuItem { Text = "Delete" };
-            menuItem.Click += MenuItem_Click;
+            //menuStrip  
+            //load right click context menu
+            ToolStripMenuItem menuItem = new ToolStripMenuItem { Text = "Load" };
+            menuItem.Click += MenuItemLoad_Click;
             contextMenuStrip.Items.Add(menuItem);
+            //delete right click menu context
+            menuItem = new ToolStripMenuItem { Text = "Save" };
+            menuItem.Click += MenuItemSave_Click;
+            contextMenuStrip.Items.Add(menuItem);
+            //save right click menu context
+            menuItem = new ToolStripMenuItem { Text = "Delete" };
+            menuItem.Click += MenuItemDelete_Click;
+            contextMenuStrip.Items.Add(menuItem);
+
+
+
 
             //Locations
 
@@ -99,52 +112,67 @@ namespace Pathfinder
             int buttonGap = (int)(ClientSize.Width * .02);
             //saveNew
             saveNew.Location = new Point((int)(ClientSize.Width * 0.05), (int)(ClientSize.Height * .8));
-            saveNew.Size = new Size(buttonSize, okBtn.Size.Height);
+            saveNew.Size = new Size(buttonSize, loadBtn.Size.Height);
 
             //saveReplace
             saveReplace.Location = new Point(saveNew.Right + buttonGap, saveNew.Top);
-            saveReplace.Size = new Size(buttonSize, okBtn.Size.Height);
+            saveReplace.Size = new Size(buttonSize, loadBtn.Size.Height);
 
             //okBtn (Load)
-            okBtn.Location = new Point(saveReplace.Right + buttonGap, saveNew.Top);
-            okBtn.Size = new Size(buttonSize, TextRenderer.MeasureText("0", font).Height);
+            loadBtn.Location = new Point(saveReplace.Right + buttonGap, saveNew.Top);
+            loadBtn.Size = new Size(buttonSize, TextRenderer.MeasureText("0", font).Height);
 
             //closeBtn
-            closeBtn.Location = new Point(okBtn.Right + buttonGap, saveNew.Top);
-            closeBtn.Size = new Size(buttonSize, okBtn.Size.Height);
+            closeBtn.Location = new Point(loadBtn.Right + buttonGap, saveNew.Top);
+            closeBtn.Size = new Size(buttonSize, loadBtn.Size.Height);
 
             //PatternList
             PatternList.Location = new Point((int)(ClientSize.Width * 0.05), Lbl.Bottom + (int)(ClientSize.Height * 0.06));
-            PatternList.Size = new Size((int)(ClientSize.Width * .9), (int)((ClientSize.Height * .94) - PatternList.Location.Y - (ClientSize.Height - okBtn.Top)));
+            PatternList.Size = new Size((int)(ClientSize.Width * .9), (int)((ClientSize.Height * .94) - PatternList.Location.Y - (ClientSize.Height - loadBtn.Top)));
 
             //Fill list with items from file path 
             fileList = fileReaderWriter.getListOfFiles(pathToFile);
             PatternList.DataSource = fileList;
 
         }
-
         private void SaveReplace_Click(object sender, EventArgs e)
         {
-            DialogResult msgRes = MessageBox.Show(this, "Are you sure you want to replace " + PatternList.SelectedItem + " ?", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Asterisk);
-            if (msgRes == DialogResult.Yes)
+            if (fileList[PatternList.SelectedIndex].extension == ".pattern")
             {
-                fileReaderWriter.saveFile(String.Format("{0} {1}\n", gridData.GetLength(0), gridData.GetLength(1)), gridData, (pathToFile + PatternList.SelectedItem));
+                DialogResult msgRes = MessageBox.Show(this, "Are you sure you want to replace " + PatternList.SelectedItem + " ?", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Asterisk);
+                if (msgRes == DialogResult.Yes)
+                {
+                    fileReaderWriter.saveFile(String.Format("{0} {1}\n", gridData.GetLength(0), gridData.GetLength(1)), gridData, (pathToFile + PatternList.SelectedItem));
+                }
+            }
+            else if (fileList[PatternList.SelectedIndex].extension == ".bmp")
+            {
+                DialogResult msgRes = MessageBox.Show(this, "Are you sure you want to replace " + PatternList.SelectedItem + " ?", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Asterisk);
+                if (msgRes == DialogResult.Yes)
+                {
+                        fileReaderWriter.saveImage(gridData, (pathToFile + PatternList.SelectedItem));
+                }
             }
         }
 
         private void SaveNew_Click(object sender, EventArgs e)
         {
-            string fileName;
+            string fileName, extension;
             using (InputForm inputForm = new InputForm("Enter file name:"))
             {
                 if (inputForm.ShowDialog() == DialogResult.OK)
                 {
                     Regex regex = new Regex(@"^[\w\-. ]+$");
                     fileName = inputForm.ReturnValue;
+                    extension = inputForm.ReturnType;
                     Match match = regex.Match(fileName);
-                    if (match.Success)
+                    if (match.Success && extension == ".pattern")
                     {
                         fileReaderWriter.saveFile(String.Format("{0} {1}\n", gridData.GetLength(0), gridData.GetLength(1)), gridData, (pathToFile + fileName + ".pattern"));
+                    }
+                    else if (match.Success && extension == ".bmp (Bitmap)")
+                    {
+                        fileReaderWriter.saveImage(gridData, (pathToFile + fileName + ".bmp"));
                     }
                     else
                     {
@@ -164,11 +192,14 @@ namespace Pathfinder
             this.DialogResult = DialogResult.Cancel;
         }
 
-        private void OkBtn_Click(object sender, EventArgs e)
+        private void loadBtn_Click(object sender, EventArgs e)
         {
             if (PatternList.SelectedItem != null)
             {
-                ReturnPattern = fileReaderWriter.getPattern(fileList[PatternList.SelectedIndex]);
+                if (fileList[PatternList.SelectedIndex].extension == ".pattern")
+                    ReturnPattern = fileReaderWriter.getPattern(fileList[PatternList.SelectedIndex]);
+                else if (fileList[PatternList.SelectedIndex].extension == ".bmp")
+                    ReturnPattern = imgRead.GetImagePixels(fileList[PatternList.SelectedIndex]);
                 DialogResult = DialogResult.OK;
                 Close();
             }
@@ -188,7 +219,7 @@ namespace Pathfinder
 
         }
 
-        private void MenuItem_Click(object sender, EventArgs e)
+        private void MenuItemDelete_Click(object sender, EventArgs e)
         {
             DialogResult msgRes = MessageBox.Show(this, "Are you sure you want to delete " + fileList[PatternList.SelectedIndex] + " ?", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Asterisk, MessageBoxDefaultButton.Button2);
             if (msgRes == DialogResult.Yes)
@@ -198,6 +229,14 @@ namespace Pathfinder
             fileList = fileReaderWriter.getListOfFiles(pathToFile);
             PatternList.DataSource = null;
             PatternList.DataSource = fileList;
+        }
+        private void MenuItemLoad_Click(object sender, EventArgs e)
+        {
+            loadBtn_Click(this, e);
+        }
+        private void MenuItemSave_Click(object sender, EventArgs e)
+        {
+            SaveReplace_Click(this, e);
         }
 
 

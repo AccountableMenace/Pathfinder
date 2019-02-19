@@ -16,9 +16,9 @@ namespace Pathfinder
         TextBox txtBox = new TextBox();
         Button Confirm = new Button();
         Button Cancel = new Button();
-
+        ComboBox typeDropDown = new ComboBox();
         public string ReturnValue { get; set; } = "undefined";
-
+        public string ReturnType { get; set; }
         public InputForm(string titleText)
         {
             InitializeComponent();
@@ -27,7 +27,7 @@ namespace Pathfinder
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
-            this.ClientSize = new Size(300, 200);
+            this.ClientSize = new Size(300, 1);
             this.Text = "";
             AcceptButton = Confirm;
             Font font = new Font(this.Font.FontFamily, 16);
@@ -53,24 +53,35 @@ namespace Pathfinder
             Cancel.Click += Cancel_Click;
             Controls.Add(Cancel);
 
+            //typeComboBox TextBox
+            typeDropDown.Font= font;
+            typeDropDown.Items.Add(".pattern");
+            typeDropDown.Items.Add(".bmp (Bitmap)");
+            typeDropDown.SelectedIndex = 0;
+            typeDropDown.DropDownStyle = ComboBoxStyle.DropDownList;
+            Controls.Add(typeDropDown);
 
             //SIZES / LOCATIONS
             int buttonSize = (int)(ClientSize.Width * 0.44);
-
+            int marginBottom = 8;
             //titleLbl
-            titleLbl.Location = new Point((int)(ClientSize.Width * 0.04), (int)(ClientSize.Height * 0.04));
+            titleLbl.Location = new Point((int)(ClientSize.Width * 0.04), marginBottom);
             titleLbl.Size = TextRenderer.MeasureText(titleLbl.Text, font);
 
             //txtBox
-            txtBox.Location = new Point((int)(ClientSize.Width * 0.04), titleLbl.Bottom + (int)(ClientSize.Height * 0.04));
+            txtBox.Location = new Point((int)(ClientSize.Width * 0.04), titleLbl.Bottom + marginBottom);
             txtBox.Size = new Size((int)(this.ClientSize.Width * .92), txtBox.Height);
 
+            //typeDropDown
+            typeDropDown.Location = new Point((int)(ClientSize.Width * 0.04), txtBox.Bottom + marginBottom);
+            typeDropDown.Size = new Size((int)(this.ClientSize.Width * .92), txtBox.Height);
+
             //Confirm Button
-            Confirm.Location = new Point((int)(ClientSize.Width * 0.04), txtBox.Bottom + (int)(ClientSize.Height * 0.04));
+            Confirm.Location = new Point((int)(ClientSize.Width * 0.04), typeDropDown.Bottom + marginBottom);
             Confirm.Size = new Size(buttonSize, titleLbl.Height);
 
             //Cancel Button
-            Cancel.Location = new Point(Confirm.Right + (int)(ClientSize.Width * 0.04), txtBox.Bottom + (int)(ClientSize.Height * 0.04));
+            Cancel.Location = new Point(Confirm.Right + (int)(ClientSize.Width * 0.04),Confirm.Top);
             Cancel.Size = new Size(buttonSize, titleLbl.Height);
 
             this.ClientSize = new Size(ClientSize.Width, Cancel.Bottom + (int)(ClientSize.Width * 0.04));
@@ -82,6 +93,7 @@ namespace Pathfinder
             if (!String.IsNullOrWhiteSpace(txtBox.Text))
             {
                 ReturnValue = txtBox.Text;
+                ReturnType = typeDropDown.SelectedItem.ToString();
                 DialogResult = DialogResult.OK;
                 Close();
             }

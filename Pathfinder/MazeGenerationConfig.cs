@@ -90,7 +90,7 @@ namespace Pathfinder
             algorithmLbl.Font = font;
             Controls.Add(algorithmLbl);
 
-            //algorithmDropDown ToolStripDropDown
+            //algorithmDropDown ComboBox
             ToolStripItem item = new ToolStripMenuItem();
             item.Text = "Recursive backtracking";
             item.Name = "GridViewRowID";
